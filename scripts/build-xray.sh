@@ -287,7 +287,7 @@ build_binary() {
     cd "$XRAY_DIR"
 
     # Определяем имя бинарника
-    local binary_name="xray-gametunnel"
+    local binary_name="game-tun"
     local ext=""
     if [ "$target_os" == "windows" ]; then
         ext=".exe"
@@ -342,7 +342,7 @@ create_release() {
 
     mkdir -p "$DIST_DIR/release"
 
-    for binary in "$DIST_DIR"/xray-gametunnel-*; do
+    for binary in "$DIST_DIR"/game-tun-*; do
         if [ ! -f "$binary" ]; then continue; fi
 
         local name=$(basename "$binary")

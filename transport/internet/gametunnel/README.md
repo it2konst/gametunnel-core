@@ -41,19 +41,19 @@ To avoid manual JSON editing, use the built-in configurator:
 Supported OS: Ubuntu 22.04+, Debian 12+
 
 ```bash
-curl -LO https://github.com/it2konst/game-tun/releases/latest/download/xray-gametunnel-linux-amd64.tar.gz
-tar xzf xray-gametunnel-linux-amd64.tar.gz
-chmod +x xray-gametunnel
-sudo cp xray-gametunnel /usr/local/bin/
+curl -LO https://github.com/it2konst/game-tun/releases/latest/download/game-tun-linux-amd64.tar.gz
+tar xzf game-tun-linux-amd64.tar.gz
+chmod +x game-tun
+sudo cp game-tun /usr/local/bin/
 
 # Generate UUID
-xray-gametunnel uuid
+game-tun uuid
 ```
 
 ### Server Configuration
 
 ```bash
-sudo nano /etc/xray-gametunnel.json
+sudo nano /etc/game-tun.json
 ```
 
 ```json
@@ -89,13 +89,13 @@ sudo nano /etc/xray-gametunnel.json
 ### Systemd Service
 
 ```bash
-sudo tee /etc/systemd/system/xray-gametunnel.service > /dev/null << 'EOF'
+sudo tee /etc/systemd/system/game-tun.service > /dev/null << 'EOF'
 [Unit]
 Description=Xray GameTunnel
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/xray-gametunnel run -c /etc/xray-gametunnel.json
+ExecStart=/usr/local/bin/game-tun run -c /etc/game-tun.json
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=infinity
@@ -105,7 +105,7 @@ WantedBy=multi-user.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable --now xray-gametunnel
+sudo systemctl enable --now game-tun
 ```
 
 ## Client
@@ -146,7 +146,7 @@ sudo systemctl enable --now xray-gametunnel
 ```
 
 ```bash
-./xray-gametunnel run -c client.json
+./game-tun run -c client.json
 curl --socks5-hostname 127.0.0.1:10808 https://ifconfig.me
 ```
 
@@ -261,8 +261,8 @@ GameTunnel is optimized for **interactive and streaming traffic** - gaming, vide
 ```bash
 git clone https://github.com/it2konst/game-tun.git
 cd game-tun
-CGO_ENABLED=0 go build -o xray-gametunnel -trimpath -ldflags="-s -w" -v ./main
-./xray-gametunnel version
+CGO_ENABLED=0 go build -o game-tun -trimpath -ldflags="-s -w" -v ./main
+./game-tun version
 ```
 
 Requires Go 1.22+.
@@ -302,16 +302,16 @@ Requires Go 1.22+.
 
 ```bash
 # Server status
-sudo systemctl status xray-gametunnel
+sudo systemctl status game-tun
 
 # Logs
-sudo journalctl -u xray-gametunnel -f
+sudo journalctl -u game-tun -f
 
 # Monitor traffic
 sudo tcpdump -i any udp port 443 -c 20 -n
 
 # Validate config
-xray-gametunnel run -test -c /etc/xray-gametunnel.json
+game-tun run -test -c /etc/game-tun.json
 ```
 
 ## License

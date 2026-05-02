@@ -9,8 +9,8 @@ This repository is currently focused on internal testing and iterative developme
 ```bash
 git clone https://github.com/it2konst/game-tun.git
 cd game-tun
-CGO_ENABLED=0 go build -o xray-gametunnel -trimpath -ldflags="-s -w" -v ./main
-./xray-gametunnel version
+CGO_ENABLED=0 go build -o game-tun -trimpath -ldflags="-s -w" -v ./main
+./game-tun version
 ```
 
 Requires Go 1.22+.

@@ -302,9 +302,9 @@
             <label>Profile Mode
               <input id="profileMode" type="text" value="IP profile" readonly />
             </label>
-            <label>Next-hop VLESS URL (optional)
-              <input id="nextHopUrl" type="text" placeholder="vless://uuid@host:443?type=tcp&security=tls..." />
-            </label>            
+          <label>Next-hop URL (optional: vless:// or trojan://)
+            <input id="nextHopUrl" type="text" placeholder="vless://... or trojan://..." />
+          </label>
             <label class="check">
               <input id="enablePadding" type="checkbox" checked />
               Enable Padding
@@ -458,6 +458,74 @@
       return outbound;
     }
 
+    function parseTrojanUrl(raw) {
+      const url = new URL(raw);
+      if (url.protocol !== "trojan:") {
+        throw new Error("Next-hop URL must start with trojan://");
+      }
+      if (!url.username) {
+        throw new Error("Trojan URL must contain password in userinfo.");
+      }
+      if (!url.hostname) {
+        throw new Error("Trojan URL must contain host.");
+      }
+
+      const port = url.port ? Number.parseInt(url.port, 10) : 443;
+      if (!Number.isFinite(port) || port < 1 || port > 65535) {
+        throw new Error("Trojan URL contains invalid port.");
+      }
+
+      const network = url.searchParams.get("type") || "tcp";
+      const security = url.searchParams.get("security") || "tls";
+      const fp = url.searchParams.get("fp") || "";
+      const alpnRaw = url.searchParams.get("alpn") || "";
+
+      const outbound = {
+        tag: "next-hop",
+        protocol: "trojan",
+        settings: {
+          servers: [
+            {
+              address: url.hostname,
+              port,
+              password: decodeURIComponent(url.username)
+            }
+          ]
+        },
+        streamSettings: {
+          network
+        }
+      };
+
+      if (security !== "none") {
+        outbound.streamSettings.security = security;
+      }
+
+      if (security === "tls") {
+        const tlsSettings = {
+          serverName: url.hostname
+        };
+        if (fp) tlsSettings.fingerprint = fp;
+        if (alpnRaw) {
+          tlsSettings.alpn = alpnRaw.split(",").map((s) => s.trim()).filter(Boolean);
+        }
+        outbound.streamSettings.tlsSettings = tlsSettings;
+      }
+
+      return outbound;
+    }
+
+    function parseNextHopUrl(raw) {
+      const url = new URL(raw);
+      if (url.protocol === "vless:") {
+        return parseVlessUrl(raw);
+      }
+      if (url.protocol === "trojan:") {
+        return parseTrojanUrl(raw);
+      }
+      throw new Error("Next-hop URL must use vless:// or trojan://");
+    }
+
     function applyPreset(name) {
       const p = presets[name];
       if (!p) return;
@@ -517,7 +585,7 @@
       };
 
       if (nextHopRaw) {
-        const nextHopOutbound = parseVlessUrl(nextHopRaw);
+        const nextHopOutbound = parseNextHopUrl(nextHopRaw);
         serverConfig.outbounds = [nextHopOutbound, { protocol: "freedom", tag: "direct" }];
         serverConfig.routing = {
           rules: [
